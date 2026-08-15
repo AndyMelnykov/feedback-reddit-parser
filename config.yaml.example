@@ -1,0 +1,5 @@
+subreddits:
+  - yourproductname
+  - relatedcommunity
+fetch_limit_per_subreddit: 100
+trend_window_weeks: 8

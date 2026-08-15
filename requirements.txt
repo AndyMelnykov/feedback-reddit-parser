@@ -1,0 +1,4 @@
+praw
+anthropic
+pyyaml
+keyring
