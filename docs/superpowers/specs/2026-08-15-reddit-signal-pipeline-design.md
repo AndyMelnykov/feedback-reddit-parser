@@ -85,13 +85,32 @@ trend_window_weeks: 8  # how many past weeks report.py considers for trend direc
 (Topic matching is judged by Claude, not a tunable numeric threshold, so there's no
 similarity setting to configure.)
 
-**`.env`** (gitignored) — credentials only:
+**Credentials — OS credential store, not a file.** A one-time `set_credentials.py` script
+prompts for each secret and saves it into the OS's native credential vault via the
+`keyring` library (Windows Credential Manager / macOS Keychain / Linux Secret Service).
+The pipeline reads them back at runtime with `keyring.get_password(...)`. No secret is
+ever written to a file on disk, so there's nothing to gitignore-forget or accidentally
+commit.
+
+```python
+# set_credentials.py (run once, interactively)
+import keyring, getpass
+
+SERVICE = "reddit-signal-pipeline"
+for key in ["reddit_client_id", "reddit_client_secret", "reddit_user_agent", "anthropic_api_key"]:
+    keyring.set_password(SERVICE, key, getpass.getpass(f"{key}: "))
 ```
-REDDIT_CLIENT_ID=...
-REDDIT_CLIENT_SECRET=...
-REDDIT_USER_AGENT=platform:app-id:version (by /u/your-username)
-ANTHROPIC_API_KEY=...
+
+```python
+# used by fetch.py / extract.py at runtime
+import keyring
+SERVICE = "reddit-signal-pipeline"
+client_id = keyring.get_password(SERVICE, "reddit_client_id")
 ```
+
+Caveat: the weekly scheduled task must run under your own Windows user account (not
+`SYSTEM` or a different account) — Credential Manager entries are keyed to the account
+that created them.
 
 **`data/state.json`**:
 ```json
@@ -129,6 +148,8 @@ user-supplied.
 - Only configured public subreddits are accessed; no private/quarantined content.
 - Minimal data retention: no author/username fields stored, no full comment trees beyond
   what's needed for topic context.
+- Credentials (Reddit client ID/secret, Anthropic API key) live only in the OS credential
+  vault via `keyring` — never in a plaintext file, never committed to the repo.
 
 ## Error handling
 
@@ -153,5 +174,5 @@ user-supplied.
 - Exact Claude prompt templates for extraction and matching.
 - CLI argument handling for running a single stage manually (e.g. re-running `match.py`
   after fixing a bug, without re-fetching).
-- Packaging: `requirements.txt` (praw, anthropic, pyyaml, python-dotenv) vs. a lockfile
-  tool — default to `requirements.txt` for simplicity unless the user prefers otherwise.
+- Packaging: `requirements.txt` (praw, anthropic, pyyaml, keyring) vs. a lockfile tool —
+  default to `requirements.txt` for simplicity unless the user prefers otherwise.
