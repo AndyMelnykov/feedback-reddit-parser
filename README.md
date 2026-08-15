@@ -30,12 +30,13 @@ about, instead of anecdotal impressions from whichever thread you happened to se
 
 ## Status
 
-Design phase — see
+Implemented — see
 [docs/superpowers/specs/2026-08-15-reddit-signal-pipeline-design.md](docs/superpowers/specs/2026-08-15-reddit-signal-pipeline-design.md)
-for the full architecture, data formats, and Reddit API compliance approach. No
-implementation yet.
+for the full architecture, data formats, and Reddit API compliance approach, and
+[docs/superpowers/plans/2026-08-15-reddit-signal-pipeline-implementation.md](docs/superpowers/plans/2026-08-15-reddit-signal-pipeline-implementation.md)
+for the implementation plan.
 
-## Architecture (planned)
+## Architecture
 
 Four independent, file-based stages chained by a single entrypoint. Each stage is a
 plain Python module and can also be run standalone.
@@ -59,6 +60,27 @@ run_weekly.py
 
 Credentials (Reddit API + Anthropic API keys) are stored in the OS credential vault via
 `keyring` — never in a plaintext file, never committed to the repo.
+
+## Setup
+
+1. Install dependencies: `pip install -r requirements.txt`
+2. Create a Reddit "script"-type app at reddit.com/prefs/apps to get a client ID and secret.
+3. Copy `config.yaml.example` to `config.yaml` and list the subreddits to track.
+4. Store credentials in your OS credential vault (one-time): `python set_credentials.py`
+   — you'll be prompted for `reddit_client_id`, `reddit_client_secret`, `reddit_user_agent`
+   (format: `platform:app-id:version (by /u/your-username)`), and `anthropic_api_key`.
+5. Run the full weekly pipeline: `python run_weekly.py`
+6. Run a single stage (e.g. after fixing a bug in matching, without re-fetching):
+   `python run_weekly.py --stage match`
+
+## Development
+
+Install dev dependencies and run the test suite:
+
+```bash
+pip install -r requirements-dev.txt
+pytest -v
+```
 
 ## Reddit API compliance
 
