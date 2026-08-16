@@ -73,6 +73,10 @@ Credentials (Reddit API + Anthropic API keys) are stored in the OS credential va
 6. Run a single stage (e.g. after fixing a bug in matching, without re-fetching):
    `python run_weekly.py --stage match`
 
+For a fully detailed, click-by-click walkthrough (creating the Reddit/Anthropic API
+keys, saving them into Windows Credential Manager, verifying each step, and
+troubleshooting), see [SETUP.md](SETUP.md).
+
 ## Development
 
 Install dev dependencies and run the test suite:
