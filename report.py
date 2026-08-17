@@ -22,7 +22,12 @@ def _recent_average(weekly_mentions, current_week, trend_window_weeks):
     recent_weeks = past_weeks[-trend_window_weeks:]
     if not recent_weeks:
         return 0.0
-    return sum(weekly_mentions[w] for w in recent_weeks) / len(recent_weeks)
+    # Linearly weight weeks by recency so the average reacts faster to
+    # recent shifts: the oldest week in the window gets weight 1, the
+    # most recent past week gets weight len(recent_weeks).
+    weighted_sum = sum((i + 1) * weekly_mentions[w] for i, w in enumerate(recent_weeks))
+    weight_total = sum(range(1, len(recent_weeks) + 1))
+    return weighted_sum / weight_total
 
 
 def _trend_direction(mentions_this_week, recent_average, first_seen_week, current_week):

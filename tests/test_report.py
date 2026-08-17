@@ -60,6 +60,23 @@ def test_compute_trends_marks_stable_within_band():
     assert rows[0]["trend"] == "stable"
 
 
+def test_compute_trends_weights_recent_weeks_more_heavily():
+    # Mentions are declining (10 -> 3 -> 1) heading into this week's 3.
+    # Flat average = (10+3+1)/3 = 4.67, so 3 < 4.67*0.8 = 3.73 => falling.
+    # Linearly-weighted average = (1*10+2*3+3*1)/6 = 3.17, so 3 falls
+    # within the stable band (2.53..3.8) once recent weeks count more.
+    registry = make_registry([{
+        "id": "t_1", "canonical_name": "Dark mode", "category": "feature_request",
+        "first_seen_week": "2026-W29",
+        "weekly_mentions": {"2026-W30": 10, "2026-W31": 3, "2026-W32": 1, "2026-W33": 3},
+        "example_permalinks": [],
+    }])
+
+    rows = report.compute_trends(registry, "2026-W33", trend_window_weeks=8)
+
+    assert rows[0]["trend"] == "stable"
+
+
 def test_compute_trends_sorts_by_mentions_this_week_descending():
     registry = make_registry([
         {"id": "t_low", "canonical_name": "Low", "category": "question",
